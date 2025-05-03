@@ -5,6 +5,35 @@ build-backend = "hatchling.build"
 [project]
 name = "diagrams"
 version = "0.1.0"
-description = "A Python project for diagrams"
+description = "A tool to generate relationship diagrams for Python code"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.8"
+authors = [
+    {name = "Python Diagrams Team"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+[project.scripts]
+diagrams = "diagrams.cli:main"
+
+[project.urls]
+"Homepage" = "https://github.com/yourusername/diagrams"
+"Bug Tracker" = "https://github.com/yourusername/diagrams/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/diagrams"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
