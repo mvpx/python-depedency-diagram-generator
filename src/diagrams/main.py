@@ -232,28 +232,28 @@ class DiagramGenerator:
         raise NotImplementedError("Subclasses must implement generate()")
 
 
-class ASCIIDiagramGenerator(DiagramGenerator):
+class ListGenerator(DiagramGenerator):
     """
-    A class to generate ASCII diagrams.
+    A class to generate list diagrams.
 
-    This class generates simple ASCII diagrams showing entity relationships.
+    This class generates simple list diagrams showing entity relationships.
     """
 
     def generate(self, entity_name: str, depth: int = 1) -> str:
         """
-        Generate an ASCII diagram for a specific entity.
+        Generate a list diagram for a specific entity.
 
         Args:
             entity_name: The name of the entity to generate a diagram for.
             depth: The maximum depth of dependencies to include.
 
         Returns:
-            The generated ASCII diagram as a string.
+            The generated list diagram as a string.
         """
         if entity_name not in self.entities:
             return f"Entity '{entity_name}' not found"
 
-        lines = [f"ASCII Diagram for {entity_name}", "=" * 40]
+        lines = [f"List Diagram for {entity_name}", "=" * 40]
 
         # Add dependencies
         lines.append("\nDependencies:")
@@ -423,7 +423,7 @@ class MermaidDiagramGenerator(DiagramGenerator):
                 self._add_used_by(lines, used_by, max_depth - 1, visited)
 
 
-def generate_diagram(directory: str, entity: str, format_type: str = 'ascii', 
+def generate_diagram(directory: str, entity: str, format_type: str = 'text',
                     depth: int = 1, output: Optional[str] = None):
     """
     Generate a diagram for a specific entity.
@@ -431,7 +431,7 @@ def generate_diagram(directory: str, entity: str, format_type: str = 'ascii',
     Args:
         directory: The directory to scan for Python files.
         entity: The name of the entity to generate a diagram for.
-        format_type: The format of the diagram ('ascii' or 'mermaid').
+        format_type: The format of the diagram ('text' or 'mermaid').
         depth: The maximum depth of dependencies to include.
         output: The output file path (if None, prints to stdout).
     """
@@ -444,8 +444,8 @@ def generate_diagram(directory: str, entity: str, format_type: str = 'ascii',
     parser.parse_files(python_files)
 
     # Generate the diagram
-    if format_type == 'ascii':
-        generator = ASCIIDiagramGenerator(parser.entities)
+    if format_type == 'text':
+        generator = ListGenerator(parser.entities)
     elif format_type == 'mermaid':
         generator = MermaidDiagramGenerator(parser.entities)
     else:
@@ -466,8 +466,8 @@ def main():
     parser = argparse.ArgumentParser(description='Generate relationship diagrams for Python code.')
     parser.add_argument('directory', help='Directory to scan for Python files')
     parser.add_argument('--entity', required=True, help='Entity to generate diagram for')
-    parser.add_argument('--format', choices=['ascii', 'mermaid'], default='ascii',
-                        help='Output format (default: ascii)')
+    parser.add_argument('--format', choices=['text', 'mermaid'], default='text',
+                        help='Output format (default: text)')
     parser.add_argument('--depth', type=int, default=1,
                         help='Maximum depth of dependencies to include (default: 1)')
     parser.add_argument('--output', help='Output file path (default: stdout)')
