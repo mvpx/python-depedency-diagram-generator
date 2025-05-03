@@ -147,13 +147,25 @@ class CodeParser:
                         entity.add_dependency(base.id)
 
             elif isinstance(node, ast.FunctionDef):
-                # Skip methods (they are part of classes)
+                # Check if this is a method in a class
                 parent_is_class = False
+                parent_class = None
                 try:
                     parent_is_class = isinstance(node.parent, ast.ClassDef)
+                    if parent_is_class:
+                        parent_class = node.parent
                 except AttributeError:
                     # If parent attribute doesn't exist, assume it's not a method
                     pass
+
+                if parent_is_class and node.name == '__init__':
+                    # This is a constructor, check for type hints in parameters
+                    for arg in node.args.args[1:]:  # Skip 'self'
+                        if arg.annotation and isinstance(arg.annotation, ast.Name):
+                            # Add dependency from the class to the type hint
+                            if parent_class.name in self.entities and arg.annotation.id in self.entities:
+                                self.entities[parent_class.name].add_dependency(arg.annotation.id)
+                                self.entities[arg.annotation.id].add_used_by(parent_class.name)
 
                 if not parent_is_class:
                     entity = Entity(node.name, 'function', file_path, node.lineno)
@@ -277,7 +289,7 @@ class ListGenerator(DiagramGenerator):
             current_depth: The current depth in the dependency tree.
             visited: A set of already visited entities to avoid cycles.
         """
-        if entity_name in visited or current_depth > max_depth:
+        if entity_name in visited or current_depth >= max_depth:
             return
 
         visited.add(entity_name)
@@ -306,7 +318,7 @@ class ListGenerator(DiagramGenerator):
             current_depth: The current depth in the used_by tree.
             visited: A set of already visited entities to avoid cycles.
         """
-        if entity_name in visited or current_depth > max_depth:
+        if entity_name in visited or current_depth >= max_depth:
             return
 
         visited.add(entity_name)
