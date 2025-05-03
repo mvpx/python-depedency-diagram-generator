@@ -4,6 +4,7 @@ class E:
 class D:
     def __init__(self, e: E):
         self.e = e
+        test_func()
 
 class C:
     def __init__(self, d: D):

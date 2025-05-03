@@ -192,12 +192,19 @@ class CodeParser:
 
         Returns:
             The parent ClassDef or FunctionDef node, or None if not found.
+            If a FunctionDef is found that is a method of a class, returns the ClassDef.
         """
         import ast
 
         parent = getattr(node, 'parent', None)
         while parent:
-            if isinstance(parent, (ast.ClassDef, ast.FunctionDef)):
+            if isinstance(parent, ast.ClassDef):
+                return parent
+            elif isinstance(parent, ast.FunctionDef):
+                # Check if this function is a method of a class
+                method_parent = getattr(parent, 'parent', None)
+                if method_parent and isinstance(method_parent, ast.ClassDef):
+                    return method_parent
                 return parent
             parent = getattr(parent, 'parent', None)
 
