@@ -1,5 +1,4 @@
-from pathlib import Path
-from diagrams.main import generate_diagram
+from main import generate_diagram
 
 def test_dep_diagram():
     """Test generating diagrams for dep_test.py."""

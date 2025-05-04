@@ -4,17 +4,13 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch, mock_open
 
-import pytest
-
-from diagrams.main import (
-    FileScanner,
-    Entity,
-    CodeParser,
-    ListGenerator,
-    MermaidDiagramGenerator,
-    generate_diagram,
-    main
-)
+from analyzer.entity import Entity
+from analyzer.parser import CodeParser
+from analyzer.scanner import FileScanner
+from core import generate_diagram
+from generator.text_generator import TextGenerator
+from generator.mermaid_generator import MermaidDiagramGenerator
+from main import main
 
 
 class TestFileScanner:
@@ -162,19 +158,19 @@ def called_function():
         # because the AST doesn't have parent information in this context
 
 
-class TestListGenerator:
-    """Tests for the ListGenerator class."""
+class TestTextGenerator:
+    """Tests for the TextGenerator class."""
 
     def test_generate_entity_not_found(self):
         """Test generating a diagram for a non-existent entity."""
-        generator = ListGenerator({})
+        generator = TextGenerator({})
         diagram = generator.generate('NonExistentEntity')
         assert "Entity 'NonExistentEntity' not found" in diagram
 
     def test_generate_simple_entity(self):
         """Test generating a diagram for a simple entity with no relationships."""
         entity = Entity('TestEntity', 'class', Path('test.py'), 10)
-        generator = ListGenerator({'TestEntity': entity})
+        generator = TextGenerator({'TestEntity': entity})
         diagram = generator.generate('TestEntity')
 
         assert "List Diagram for TestEntity" in diagram
@@ -187,7 +183,7 @@ class TestListGenerator:
         entity2 = Entity('Entity2', 'class', Path('test.py'), 20)
         entity1.add_dependency('Entity2')
 
-        generator = ListGenerator({'Entity1': entity1, 'Entity2': entity2})
+        generator = TextGenerator({'Entity1': entity1, 'Entity2': entity2})
         diagram = generator.generate('Entity1')
 
         assert "List Diagram for Entity1" in diagram
@@ -200,7 +196,7 @@ class TestListGenerator:
         entity2 = Entity('Entity2', 'class', Path('test.py'), 20)
         entity1.add_used_by('Entity2')
 
-        generator = ListGenerator({'Entity1': entity1, 'Entity2': entity2})
+        generator = TextGenerator({'Entity1': entity1, 'Entity2': entity2})
         diagram = generator.generate('Entity1')
 
         assert "List Diagram for Entity1" in diagram
@@ -263,9 +259,9 @@ class TestMermaidDiagramGenerator:
 
 @patch('diagrams.main.FileScanner')
 @patch('diagrams.main.CodeParser')
-@patch('diagrams.main.ListGenerator')
+@patch('diagrams.main.TextGenerator')
 @patch('builtins.open', new_callable=mock_open)
-def test_generate_diagram_ascii(mock_file, mock_list_generator, mock_parser, mock_scanner):
+def test_generate_diagram_ascii(mock_file, mock_text_generator, mock_parser, mock_scanner):
     """Test generating a list diagram."""
     # Setup mocks
     mock_scanner_instance = mock_scanner.return_value
@@ -274,7 +270,7 @@ def test_generate_diagram_ascii(mock_file, mock_list_generator, mock_parser, moc
     mock_parser_instance = mock_parser.return_value
     mock_parser_instance.entities = {'TestEntity': Entity('TestEntity', 'class', Path('test.py'), 10)}
 
-    mock_generator_instance = mock_list_generator.return_value
+    mock_generator_instance = mock_text_generator.return_value
     mock_generator_instance.generate.return_value = "List Diagram"
 
     # Call the function
@@ -287,7 +283,7 @@ def test_generate_diagram_ascii(mock_file, mock_list_generator, mock_parser, moc
     mock_parser.assert_called_once()
     mock_parser_instance.parse_files.assert_called_once_with([Path('test.py')])
 
-    mock_list_generator.assert_called_once_with(mock_parser_instance.entities)
+    mock_text_generator.assert_called_once_with(mock_parser_instance.entities)
     mock_generator_instance.generate.assert_called_once_with('TestEntity', 1)
 
     mock_file.assert_called_once_with('output.txt', 'w', encoding='utf-8')

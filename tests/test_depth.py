@@ -1,8 +1,12 @@
 from pathlib import Path
-from diagrams.main import Entity, ListGenerator, MermaidDiagramGenerator
 
-def test_list_generator_depth():
-    """Test that ListGenerator correctly handles depth=4."""
+from analyzer.entity import Entity
+from generator.text_generator import TextGenerator
+from generator.mermaid_generator import MermaidDiagramGenerator
+
+
+def test_text_generator_depth():
+    """Test that TextGenerator correctly handles depth=4."""
     # Create a chain of entities with dependencies
     entity1 = Entity('Entity1', 'class', Path('test.py'), 10)
     entity2 = Entity('Entity2', 'class', Path('test.py'), 20)
@@ -30,7 +34,7 @@ def test_list_generator_depth():
         'Entity4': entity4,
         'Entity5': entity5
     }
-    generator = ListGenerator(entities)
+    generator = TextGenerator(entities)
     
     # Generate diagram with depth=4
     diagram = generator.generate('Entity1', depth=4)
@@ -47,7 +51,7 @@ def test_list_generator_depth():
     # Check that all 4 levels of used_by are included
     # Note: Entity1 is the main entity, so it doesn't appear in the "Used by" section
     
-    print("All assertions passed for ListGenerator!")
+    print("All assertions passed for TextGenerator!")
     
     # Test MermaidDiagramGenerator as well
     mermaid_generator = MermaidDiagramGenerator(entities)
@@ -73,4 +77,4 @@ def test_list_generator_depth():
     print("All assertions passed for MermaidDiagramGenerator!")
 
 if __name__ == "__main__":
-    test_list_generator_depth()
+    test_text_generator_depth()
