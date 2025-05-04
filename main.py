@@ -138,7 +138,7 @@ def main():
     parser = argparse.ArgumentParser(description='Generate relationship diagrams for Python code.')
     parser.add_argument('directory', nargs='?', help='Directory to scan for Python files')
     parser.add_argument('--entity', help='Entity to generate diagram for')
-    parser.add_argument('--format', choices=['text', 'mermaid'], default='text',
+    parser.add_argument('--format', choices=['text', 'mermaid', 'ascii'], default='text',
                         help='Output format (default: text)')
     parser.add_argument('--depth', type=int, default=4,
                         help='Maximum depth of dependencies to include (default: 4)')
