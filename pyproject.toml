@@ -23,6 +23,12 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
+dependencies = [
+    "prompt-toolkit>=3.0.51",
+]
+
+[project.optional-dependencies]
+interactive = ["prompt-toolkit>=3.0.0"]
 
 [project.scripts]
 diagrams = "diagrams.cli:main"

@@ -12,6 +12,7 @@ This project provides a flexible and extensible way to visualize relationships b
 - Generate relationship diagrams for specific classes or functions
 - Control the depth of dependency mapping
 - Ignore third-party libraries
+- Interactive CLI mode with autocomplete for entity selection
 - Support multiple output formats:
   - ASCII diagrams
   - Mermaid diagrams
@@ -27,6 +28,11 @@ This project provides a flexible and extensible way to visualize relationships b
 2. Install dependencies:
    ```
    uv pip install -e .
+   ```
+
+   For interactive mode with autocomplete:
+   ```
+   uv pip install -e ".[interactive]"
    ```
 
 3. Run tests:
@@ -77,16 +83,35 @@ Features:
 
 ## Usage Examples
 
+### Command-line Arguments
+
 ```bash
 # Generate an ASCII diagram for a specific class
-python -m diagrams --entity MyClass --format ascii --depth 2 path/to/project
+python -m diagrams --entity MyClass --format text --depth 2 path/to/project
 
 # Generate a Mermaid diagram for a specific function
-python -m diagrams --entity my_function --format mermaid --depth 1 path/to/project
+python -m diagrams --entity my_function --format mermaid --depth 4 path/to/project
 
-# Generate a PNG image
-python -m diagrams --entity MyClass --format png --output diagram.png path/to/project
+# Generate a diagram and save to a file
+python -m diagrams --entity MyClass --format text --output diagram.txt path/to/project
 ```
+
+### Interactive Mode
+
+```bash
+# Start in interactive mode
+python -m diagrams -i
+
+# Or simply run without arguments
+python -m diagrams
+```
+
+In interactive mode:
+1. You'll be prompted to enter the directory to scan
+2. You'll see a list of available entities with autocomplete as you type
+3. You can select the output format (text or mermaid)
+4. You can specify the depth (default is 4)
+5. You can specify an output file (or leave empty to print to stdout)
 
 ## Project Structure
 
