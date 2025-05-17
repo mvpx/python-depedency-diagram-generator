@@ -30,27 +30,50 @@ class MermaidDiagramGenerator(DiagramGenerator):
         if entity_name not in self.entities:
             return f"Entity '{entity_name}' not found"
 
-        lines = ["```mermaid", "graph TD"]
-
-        # Add the main entity
-        entity = self.entities[entity_name]
-        shape = "[[" if entity.type == "class" else "("
-        shape_end = "]]" if entity.type == "class" else ")"
-        lines.append(f"    {entity_name}{shape}{entity_name}{shape_end}")
+        lines = [
+            "```mermaid",
+            "graph TD",
+            "    classDef classNode fill:#f9f,stroke:#333,stroke-width:2px,color:#000",
+            "    classDef functionNode fill:#9cf,stroke:#333,stroke-width:2px,color:#000",
+            "    classDef defaultNode fill:#lightgrey,stroke:#333,stroke-width:2px,color:#000"
+        ]
+        
+        defined_nodes = set()
+        
+        # Define main entity and ensure it's processed first
+        self._define_node_if_not_exists(lines, entity_name, defined_nodes)
 
         # Add dependencies
-        visited = set()
-        self._add_dependencies(lines, entity_name, depth, visited)
+        visited_edges = set()
+        self._add_dependencies(lines, entity_name, depth, visited_edges, defined_nodes)
 
         # Add entities that use this entity
-        self._add_used_by(lines, entity_name, depth, visited)
+        self._add_used_by(lines, entity_name, depth, visited_edges, defined_nodes)
 
         lines.append("```")
-
         return "\n".join(lines)
 
+    def _get_node_style_and_shape(self, entity_type: str) -> Tuple[str, str, str]:
+        if entity_type == "class":
+            return "classNode", "[[", "]]"
+        elif entity_type == "function": # Assuming 'function' type
+            return "functionNode", "((", "))" # e.g., stadium shape for functions
+        # Add more types here if needed
+        else: # Default
+            return "defaultNode", "(", ")"
+
+    def _define_node_if_not_exists(self, lines: List[str], entity_id: str, defined_nodes: Set[str]):
+        if entity_id in defined_nodes or entity_id not in self.entities:
+            return
+
+        entity = self.entities[entity_id]
+        style_class, shape_start, shape_end = self._get_node_style_and_shape(entity.type)
+        
+        lines.append(f"    {entity_id}{shape_start}{entity_id}{shape_end}:::{style_class}")
+        defined_nodes.add(entity_id)
+
     def _add_dependencies(self, lines: List[str], entity_name: str, max_depth: int, 
-                         visited: Set[Tuple[str, str]]):
+                         visited_edges: Set[Tuple[str, str]], defined_nodes: Set[str]):
         """
         Add dependencies to the diagram.
 
@@ -58,28 +81,27 @@ class MermaidDiagramGenerator(DiagramGenerator):
             lines: The list of lines to add to.
             entity_name: The name of the entity to add dependencies for.
             max_depth: The maximum depth of dependencies to include.
-            visited: A set of already visited entity pairs to avoid cycles.
+            visited_edges: A set of already visited entity pairs (edges) to avoid cycles.
+            defined_nodes: A set of entity IDs that have already been defined in the diagram.
         """
         if max_depth <= 0 or entity_name not in self.entities:
             return
 
+        self._define_node_if_not_exists(lines, entity_name, defined_nodes)
+
         entity = self.entities[entity_name]
 
-        for dep in entity.dependencies:
-            if dep in self.entities and (entity_name, dep) not in visited:
-                visited.add((entity_name, dep))
+        for dep_name in entity.dependencies:
+            if dep_name in self.entities:
+                self._define_node_if_not_exists(lines, dep_name, defined_nodes)
 
-                dep_entity = self.entities[dep]
-                shape = "[[" if dep_entity.type == "class" else "("
-                shape_end = "]]" if dep_entity.type == "class" else ")"
-
-                lines.append(f"    {entity_name} --> {dep}")
-                lines.append(f"    {dep}{shape}{dep}{shape_end}")
-
-                self._add_dependencies(lines, dep, max_depth - 1, visited)
+                if (entity_name, dep_name) not in visited_edges:
+                    visited_edges.add((entity_name, dep_name))
+                    lines.append(f"    {entity_name} --> {dep_name}")
+                    self._add_dependencies(lines, dep_name, max_depth - 1, visited_edges, defined_nodes)
 
     def _add_used_by(self, lines: List[str], entity_name: str, max_depth: int, 
-                    visited: Set[Tuple[str, str]]):
+                    visited_edges: Set[Tuple[str, str]], defined_nodes: Set[str]):
         """
         Add entities that use this entity to the diagram.
 
@@ -87,22 +109,21 @@ class MermaidDiagramGenerator(DiagramGenerator):
             lines: The list of lines to add to.
             entity_name: The name of the entity to add used_by for.
             max_depth: The maximum depth of used_by to include.
-            visited: A set of already visited entity pairs to avoid cycles.
+            visited_edges: A set of already visited entity pairs (edges) to avoid cycles.
+            defined_nodes: A set of entity IDs that have already been defined in the diagram.
         """
         if max_depth <= 0 or entity_name not in self.entities:
             return
+        
+        self._define_node_if_not_exists(lines, entity_name, defined_nodes)
 
         entity = self.entities[entity_name]
 
-        for used_by in entity.used_by:
-            if used_by in self.entities and (used_by, entity_name) not in visited:
-                visited.add((used_by, entity_name))
+        for user_name in entity.used_by:
+            if user_name in self.entities:
+                self._define_node_if_not_exists(lines, user_name, defined_nodes)
 
-                used_by_entity = self.entities[used_by]
-                shape = "[[" if used_by_entity.type == "class" else "("
-                shape_end = "]]" if used_by_entity.type == "class" else ")"
-
-                lines.append(f"    {used_by} --> {entity_name}")
-                lines.append(f"    {used_by}{shape}{used_by}{shape_end}")
-
-                self._add_used_by(lines, used_by, max_depth - 1, visited)
+                if (user_name, entity_name) not in visited_edges:
+                    visited_edges.add((user_name, entity_name))
+                    lines.append(f"    {user_name} --> {entity_name}")
+                    self._add_used_by(lines, user_name, max_depth - 1, visited_edges, defined_nodes)
