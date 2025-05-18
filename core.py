@@ -5,6 +5,7 @@ from analyzer.scanner import FileScanner
 from constants import GeneratorType
 from generator.text_generator import TextGenerator
 from generator.mermaid_generator import MermaidDiagramGenerator
+from generator.ascii_generator import ASCIIDiagramGenerator 
 
 
 def generate_diagram(directory: str, entity: str, format_type: str = 'text',
@@ -15,7 +16,7 @@ def generate_diagram(directory: str, entity: str, format_type: str = 'text',
     Args:
         directory: The directory to scan for Python files.
         entity: The name of the entity to generate a diagram for.
-        format_type: The format of the diagram ('text' or 'mermaid').
+        format_type: The format of the diagram ('text', 'mermaid', or 'ascii').
         depth: The maximum depth of dependencies to include.
         output: The output file path (if None, prints to stdout).
     """
@@ -32,6 +33,8 @@ def generate_diagram(directory: str, entity: str, format_type: str = 'text',
         generator = TextGenerator(parser.entities)
     elif format_type == GeneratorType.Mermaid:
         generator = MermaidDiagramGenerator(parser.entities)
+    elif format_type == GeneratorType.ASCII:
+        generator = ASCIIDiagramGenerator(parser.entities)
     else:
         raise ValueError(f"Unsupported format: {format_type}")
 

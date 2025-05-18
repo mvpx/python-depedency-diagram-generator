@@ -4,6 +4,7 @@ from enum import StrEnum
 class GeneratorType(StrEnum):
     Text = "text"
     Mermaid = "mermaid"
+    ASCII = "ascii"
 
     @classmethod
     def get_options(cls) -> list:
