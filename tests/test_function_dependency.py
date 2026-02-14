@@ -5,7 +5,7 @@ from generator.text_generator import TextGenerator
 
 # Parse the dep_test.py file
 parser = CodeParser()
-parser.parse_file(Path("dep_test.py"))
+parser.parse_file(Path(__file__).parent / "dep_test.py")
 
 # Check if the dependency between class B and function test_func is correctly identified
 if "B" in parser.entities:

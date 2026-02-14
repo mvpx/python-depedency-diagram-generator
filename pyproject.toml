@@ -31,14 +31,14 @@ dependencies = [
 interactive = ["prompt-toolkit>=3.0.0"]
 
 [project.scripts]
-diagrams = "diagrams.cli:main"
+diagrams = "main:main"
 
 [project.urls]
 "Homepage" = "https://github.com/yourusername/diagrams"
 "Bug Tracker" = "https://github.com/yourusername/diagrams/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/diagrams"]
+packages = ["analyzer", "generator"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

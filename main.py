@@ -26,15 +26,51 @@ class EntityCompleter(Completer):
         self.entity_names = list(entities.keys())
 
     def get_completions(self, document, complete_event):
-        word = document.get_word_before_cursor()
+        word_before_cursor = document.get_word_before_cursor()
+
+        # If word_before_cursor is empty, do not proceed.
+        if not word_before_cursor:
+            return
+
+        word_lower = word_before_cursor.lower()
+
         for entity_name in self.entity_names:
-            if word.lower() in entity_name.lower():
+            if entity_name.lower().startswith(word_lower):
                 entity = self.entities[entity_name]
-                display_text = HTML(f'<b>{entity_name}</b> ({entity.type} in <i>{entity.file_path.name}</i>)')
+
+                # Construct the main part of the display text for the suggestion.
+                # This ensures that the displayed suggestion starts with the exact characters typed by the user (case-preserved),
+                # followed by the rest of the entity name. This helps if prompt-toolkit performs
+                # a case-sensitive match of the typed word against the displayed string.
+                # For example, if user types "B" and entity_name is "beta",
+                # displayed_text_main_part becomes "Beta".
+                # If user types "b" and entity_name is "Beta",
+                # displayed_text_main_part becomes "beta".
+                # The actual inserted text upon completion will still be the original `entity_name`.
+
+                # Check if the length of word_before_cursor is not greater than entity_name
+                # This should generally be true if startswith matched, but good for safety.
+                if len(word_before_cursor) <= len(entity_name):
+                    # Ensure the prefix matches case-insensitively before reconstructing.
+                    # This handles cases like word="Foo", entity_name="foobar" -> display "Foobar"
+                    # And word="foo", entity_name="Foobar" -> display "foobar"
+                    if entity_name[:len(word_before_cursor)].lower() == word_lower:
+                        displayed_text_main_part = word_before_cursor + entity_name[len(word_before_cursor):]
+                    else:
+                        # This case should ideally not be hit if entity_name.lower().startswith(word_lower) is true
+                        # and both are simple strings. However, as a fallback, use entity_name.
+                        displayed_text_main_part = entity_name
+                else:
+                    # Fallback if word_before_cursor is somehow longer than entity_name (should not happen here)
+                    displayed_text_main_part = entity_name
+
+                display_text = HTML(
+                    f'<b>{displayed_text_main_part}</b> ({entity.type} in <i>{entity.file_path.name}</i>)')
+
                 yield Completion(
-                    entity_name,
-                    start_position=-len(word),
-                    display=display_text,
+                    entity_name,  # Actual text to insert is the original entity_name
+                    start_position=-len(word_before_cursor),
+                    display=display_text,  # Displayed text in the menu
                     display_meta=f"{entity.file_path}"
                 )
 

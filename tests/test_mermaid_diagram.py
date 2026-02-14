@@ -5,7 +5,7 @@ from generator.mermaid_generator import MermaidDiagramGenerator
 
 # Parse the dep_test.py file
 parser = CodeParser()
-parser.parse_file(Path("dep_test.py"))
+parser.parse_file(Path(__file__).parent / "dep_test.py")
 
 # Generate a Mermaid diagram for B
 if "B" in parser.entities:
